@@ -2,6 +2,7 @@ package driver
 
 import (
 	"encoding/json"
+	"sort"
 	"time"
 
 	"github.com/corna/libraries-wasm/guest/comune"
@@ -19,6 +20,7 @@ type Driver interface {
 
 type Meta struct {
 	Capability   string
+	Vendor       string
 	Protocol     string // modbus-tcp | rest-api | serial-fronius | mqtt-subscribe | yasdi-csv
 	RestPath     string
 	NeedsSession bool
@@ -29,6 +31,16 @@ type Meta struct {
 	// del reader (20s).
 	MQTTTopic  string
 	MQTTWindow time.Duration
+
+	// Validato: affermazione di chi ha scritto il driver su cosa e' stato
+	// osservato su hardware reale, non derivabile dal codice -- per questo va
+	// impostato a mano, non calcolato. "" = non verificato/non specificato,
+	// "validato" = confermato su almeno un impianto reale (vedi
+	// NotaValidazione per cosa esattamente), "non_validato" = costruito e
+	// testato solo con dati sintetici, nessun impianto reale lo ha ancora
+	// esercitato.
+	Validato        string
+	NotaValidazione string
 }
 
 type Block struct {
@@ -79,6 +91,18 @@ func Register(d Driver) { registry[d.Meta().Capability] = d }
 func Get(capability string) (Driver, bool) {
 	d, ok := registry[capability]
 	return d, ok
+}
+
+// All ritorna i Meta di ogni driver registrato, ordinati per capacita'.
+// Serve al generatore del manifest (vedi cmd/manifest in pvdriver-vendor):
+// i percorsi di lettura normali usano sempre Get, mai All.
+func All() []Meta {
+	out := make([]Meta, 0, len(registry))
+	for _, d := range registry {
+		out = append(out, d.Meta())
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].Capability < out[j].Capability })
+	return out
 }
 
 // Ingresso adatta Input al tipo che comune sa decodificare. Helper condiviso
