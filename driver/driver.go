@@ -5,7 +5,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/corna/libraries-wasm/guest/comune"
+	"github.com/corna/pvdriver/comune"
 	"github.com/corna/pvdriver/reading"
 )
 
