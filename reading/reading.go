@@ -38,18 +38,33 @@ type Metric struct {
 	Device     Device    `json:"device"`
 	MeasuredAt time.Time `json:"measured_at"`
 
-	PowerAC              *float64 `json:"power_ac"`
-	PowerDC              *float64 `json:"power_dc"`
-	VoltageDC            *float64 `json:"voltage_dc"`
-	CurrentDC            *float64 `json:"current_dc"`
-	VoltageAC            *float64 `json:"voltage_ac"`
-	CurrentAC            *float64 `json:"current_ac"`
-	FrequencyHz          *float64 `json:"frequency_hz"`
-	ReactivePowerVAR     *float64 `json:"reactive_power_var"`
-	ApparentPowerVA      *float64 `json:"apparent_power_va"`
-	PowerFactor          *float64 `json:"power_factor"`
-	Temperature          *float64 `json:"temperature"`
-	EnergyAC             *float64 `json:"energy_ac"`
+	PowerAC          *float64 `json:"power_ac"`
+	PowerDC          *float64 `json:"power_dc"`
+	VoltageDC        *float64 `json:"voltage_dc"`
+	CurrentDC        *float64 `json:"current_dc"`
+	VoltageAC        *float64 `json:"voltage_ac"`
+	CurrentAC        *float64 `json:"current_ac"`
+	FrequencyHz      *float64 `json:"frequency_hz"`
+	ReactivePowerVAR *float64 `json:"reactive_power_var"`
+	ApparentPowerVA  *float64 `json:"apparent_power_va"`
+	PowerFactor      *float64 `json:"power_factor"`
+	Temperature      *float64 `json:"temperature"`
+	// EnergyAC is energy produced during THIS reading's interval (kWh), not
+	// a running total. Only set it if the device itself reports a
+	// per-interval or per-poll delta -- Decode has no memory between polls,
+	// so it cannot compute one from a cumulative counter. Most drivers
+	// leave this nil and rely on EnergyACCumulative instead: the server
+	// derives interval energy from consecutive cumulative readings, and
+	// that delta is preferred over EnergyAC whenever both are present (see
+	// ingest/rollup/inverter.go). Putting a daily/cumulative counter here
+	// by mistake inflates the interval sum by however many times that
+	// bucket samples it.
+	EnergyAC *float64 `json:"energy_ac"`
+	// EnergyACCumulative is the device's lifetime (or at least
+	// long-running, monotonic-within-a-day) energy counter, e.g. an
+	// inverter's "total energy" register -- NOT the daily counter that
+	// resets at midnight. The server computes interval energy as the delta
+	// between consecutive readings of this field.
 	EnergyACCumulative   *float64 `json:"energy_ac_cumulative"`
 	ConversionEfficiency *float64 `json:"conversion_efficiency"`
 	OperatingState       *string  `json:"operating_state"`
