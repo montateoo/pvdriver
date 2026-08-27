@@ -65,6 +65,15 @@ type Metric struct {
 	// inverter's "total energy" register -- NOT the daily counter that
 	// resets at midnight. The server computes interval energy as the delta
 	// between consecutive readings of this field.
+	//
+	// UNIT: kWh. This is the one field where getting the unit wrong is
+	// invisible in code review and catastrophic at the DB: ingest converts
+	// only the POWER fields to kilo (see kilo() in the agent's ingest
+	// client) and takes energies as-is, so a driver emitting Wh here lands
+	// values 1000x too large in a kWh column. It happened: AROS on site
+	// solar_db_anna, 2026-08-26, caught only by comparing cumulative
+	// energies across sites (a 10 kW inverter cannot out-produce a 432 kW
+	// one by 15x).
 	EnergyACCumulative   *float64 `json:"energy_ac_cumulative"`
 	ConversionEfficiency *float64 `json:"conversion_efficiency"`
 	OperatingState       *string  `json:"operating_state"`
