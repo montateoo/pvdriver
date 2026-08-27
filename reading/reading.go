@@ -38,6 +38,21 @@ type Metric struct {
 	Device     Device    `json:"device"`
 	MeasuredAt time.Time `json:"measured_at"`
 
+	// Le grandezze di potenza -- PowerAC, PowerDC, ReactivePowerVAR,
+	// ApparentPowerVA -- sono SEMPRE in unita' di base: W, VAR, VA. Mai in
+	// kW/kVAR/kVA, anche quando la mappa registri del dispositivo produce
+	// direttamente i kilo- (scale 0.001): in quel caso il driver riporta il
+	// valore in unita' di base, come fanno sma/webbox, huawei e sigenergy.
+	//
+	// Il motivo non e' estetico: il consumatore converte. L'agente Helios
+	// divide per 1000 in infra/http/helios/ingest.kilo() subito prima di
+	// spedire, perche' la sua API vuole kW sul filo. Un driver che consegna
+	// gia' kW produce quindi valori 1000 volte piu' piccoli a database, e
+	// non se ne accorge nessuno: nessun allarme scatta, il grafico resta
+	// della forma giusta e solo la scala e' sbagliata.
+	//
+	// Tensioni, correnti, frequenza, temperatura e fattore di potenza
+	// passano invece grezzi (V, A, Hz, gradi C, adimensionale).
 	PowerAC          *float64 `json:"power_ac"`
 	PowerDC          *float64 `json:"power_dc"`
 	VoltageDC        *float64 `json:"voltage_dc"`
