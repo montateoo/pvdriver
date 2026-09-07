@@ -73,6 +73,19 @@ type Input struct {
 	// demone che scrive il file e' fermo.
 	Text        string
 	FileModTime time.Time
+
+	// Lean: il reader chiede al driver il giro "magro", cioe' le sole
+	// grandezze indispensabili (potenza ed energia cumulativa, piu'
+	// l'identita' se non costa nulla), saltando tensioni, correnti, lato DC,
+	// frequenza e stato. Serve sui bus seriali con molti inverter, dove ogni
+	// comando costa centinaia di ms e il giro completo diventa piu' lungo
+	// del periodo di poll (BM: 38 Fronius su un anello Solar Net = un
+	// campione ogni 15 minuti con 8 comandi per inverter, ~4 con 2). Un
+	// driver che non conosce il flag lo ignora e resta corretto: Lean e' un
+	// suggerimento sul costo, non un contratto sul contenuto. Il reader
+	// decide come alternare giri magri e giri completi (es. uno completo
+	// ogni N), il driver non ha stato.
+	Lean bool
 }
 
 // SerialFunc esegue una transazione sul bus seriale: invia frame e ritorna la
