@@ -2,6 +2,7 @@ package driver
 
 import (
 	"encoding/json"
+	"math"
 	"sort"
 	"time"
 
@@ -142,4 +143,20 @@ func ConversionEfficiency(powerAC, powerDC *float64) *float64 {
 	}
 	v := comune.Round(*powerAC/(*powerDC)*100.0, 2)
 	return &v
+}
+
+// Cumulative filtra una lettura di contatore di energia a vita (kWh) che non
+// puo' essere vera: nil, NaN, infinito o <= 0. Un inverter in campo non ha mai
+// un totale di esattamente zero: lo 0 e' il registro non popolato (WebBox SMA
+// appena aperta, SmartLogger in timeout), la risposta vuota sul ring Fronius
+// (raw=0) o il contatore azzerato di un AROS in stato 3. Pubblicarlo fa vedere
+// al server un reset del contatore e, al campione successivo, l'intero totale a
+// vita come energia dell'intervallo: 54.493 kWh in un'ora su un inverter da
+// 10 kW (BM Legno, inverter Fronius, 2026-08-29 04:08Z). Scartare il campione
+// non costa nulla: senza cumulativo il server integra la potenza.
+func Cumulative(v *float64) *float64 {
+	if v == nil || math.IsNaN(*v) || math.IsInf(*v, 0) || *v <= 0 {
+		return nil
+	}
+	return v
 }
