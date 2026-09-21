@@ -1,0 +1,8 @@
+# Fine riga: sorgenti Go sempre LF, cosi' gofmt su Windows (autocrlf) e sul runner Linux vedono gli stessi byte.
+* text=auto
+*.go text eol=lf
+*.mod text eol=lf
+*.sum text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.md text eol=lf
